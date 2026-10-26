@@ -1,0 +1,31 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width"><title>Critter Logic Publisher</title>
+<style>body{font-family:sans-serif;max-width:760px;margin:30px auto;padding:0 16px;background:#111;color:#eee}button{padding:10px 18px;font-size:16px;margin:6px 0;cursor:pointer}video{max-height:420px;background:#000}.box{border:1px solid #444;padding:14px;margin:12px 0;border-radius:8px}label{display:block;margin:6px 0}</style>
+<h1>Critter Logic Publisher</h1>
+<p>Private tool of the Critter Logic channel: publish our own rendered shorts to TikTok. <a href=privacy.html>Privacy</a> · <a href=terms.html>Terms</a></p>
+<div class=box id=login><h2>1. Connect TikTok</h2><button id=bl>Log in with TikTok</button><div id=me></div></div>
+<div class=box><h2>2. Video</h2><select id=vids></select><br><video id=pv controls></video></div>
+<div class=box><h2>3. Post settings</h2>
+<label>Caption <input id=cap size=60></label>
+<label>Who can view <select id=priv></select></label>
+<label><input type=checkbox id=c1> Allow comments</label><label><input type=checkbox id=c2> Allow Duet</label><label><input type=checkbox id=c3> Allow Stitch</label>
+<p style="font-size:13px">By posting, you agree to TikTok's <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en">Music Usage Confirmation</a>.</p>
+<button id=bp>Publish to TikTok</button><pre id=st></pre></div>
+<script>
+const API="http://127.0.0.1:8787";const $=id=>document.getElementById(id);
+const j=(p,o)=>fetch(API+p,o).then(r=>r.json());
+const q=new URLSearchParams(location.search);
+async function init(){
+ if(q.get("code")){await j("/oauth?code="+encodeURIComponent(q.get("code"))+"&state="+q.get("state"));history.replaceState(0,"",location.pathname)}
+ $("bl").onclick=async()=>{location=(await j("/login")).url};
+ const c=await j("/creator");
+ if(c.ok){$("me").innerHTML=`<img src="${c.avatar}" width=40 style="vertical-align:middle;border-radius:50%"> Connected as <b>${c.nickname}</b> (@${c.username})`;
+  $("priv").innerHTML=c.privacy.map(p=>`<option>${p}</option>`).join("");
+  $("c1").disabled=c.comment_disabled;$("c2").disabled=c.duet_disabled;$("c3").disabled=c.stitch_disabled;}
+ const v=await j("/videos");$("vids").innerHTML=v.map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
+ const show=()=>{const x=v.find(y=>y.id==$("vids").value);if(x){$("pv").src=API+"/file/"+x.id;$("cap").value=x.title}};$("vids").onchange=show;show();
+ $("bp").onclick=async()=>{$("st").textContent="Uploading…";
+  const r=await j("/publish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:$("vids").value,caption:$("cap").value,privacy:$("priv").value,comment:$("c1").checked,duet:$("c2").checked,stitch:$("c3").checked})});
+  $("st").textContent=JSON.stringify(r,null,2)};
+}
+init().catch(e=>$("st").textContent="Local publisher service not running: "+e);
+</script>
