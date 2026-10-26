@@ -10,7 +10,8 @@
 <label><input type=checkbox id=c1> Allow comments</label><label><input type=checkbox id=c2> Allow Duet</label><label><input type=checkbox id=c3> Allow Stitch</label>
 <p style="font-size:13px">By posting, you agree to TikTok's <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en">Music Usage Confirmation</a>.</p>
 <button id=bp>Publish to TikTok</button><pre id=st></pre></div>
-<script>
+<script>if(location.hostname!=="127.0.0.1"){location.replace("http://127.0.0.1:8787/"+location.search)}
+
 const API="http://127.0.0.1:8787";const $=id=>document.getElementById(id);
 const j=(p,o)=>fetch(API+p,o).then(r=>r.json());
 const q=new URLSearchParams(location.search);
